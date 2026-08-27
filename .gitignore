@@ -1,0 +1,15 @@
+# Config local / secretos — nunca se sube, cada entorno tiene el suyo
+.env
+
+# Logs de runtime
+storage/logs/*.log
+
+# Fotos de perfil subidas por usuarios (datos de cada entorno, no del código)
+assets/img/avatars/*
+!assets/img/avatars/.gitkeep
+
+# Basura de SO / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
