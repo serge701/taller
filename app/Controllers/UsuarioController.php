@@ -111,6 +111,37 @@ class UsuarioController extends Controller
         redirect('usuarios');
     }
 
+    public function foto(array $params): void
+    {
+        Auth::requireAdmin();
+        Csrf::verify();
+
+        $id      = (int) $params['id'];
+        $model   = new Usuario();
+        $usuario = $model->find($id);
+        if (!$usuario) {
+            flash('error', 'Usuario no encontrado.');
+            redirect('usuarios');
+        }
+
+        $resultado = procesar_subida_avatar($_FILES['foto'] ?? null, 'avatar_' . $id);
+        if (!$resultado['ok']) {
+            flash('error', $resultado['error']);
+            redirect('usuarios/' . $id . '/editar');
+        }
+
+        eliminar_avatar_anterior($usuario['foto'] ?? null);
+        $model->update($id, ['foto' => $resultado['archivo']]);
+
+        // Si el admin se está editando a sí mismo, mantener también la sesión al día.
+        if ($id === Auth::id()) {
+            Auth::updateSession(['foto' => $resultado['archivo']]);
+        }
+
+        flash('success', 'Foto actualizada.');
+        redirect('usuarios/' . $id . '/editar');
+    }
+
     public function destroy(array $params): void
     {
         Auth::requireAdmin();

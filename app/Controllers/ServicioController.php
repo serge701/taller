@@ -7,9 +7,35 @@ use App\Core\Controller;
 use App\Core\Auth;
 use App\Core\Csrf;
 use App\Models\Servicio;
+use App\Models\Venta;
 
 class ServicioController extends Controller
 {
+    public function show(array $params): void
+    {
+        Auth::require();
+
+        $servicio = (new Servicio())->find((int) $params['id']);
+        if (!$servicio) {
+            flash('error', 'Servicio no encontrado.');
+            redirect('servicios');
+        }
+
+        $ventaModel  = new Venta();
+        $servicioId  = (int) $servicio['id'];
+
+        $this->render('servicios/show', [
+            'pageTitle'    => $servicio['nombre'],
+            'pageSubtitle' => 'Historial de ventas de este servicio',
+            'pageActions'  => '<a href="' . url('servicios/' . $servicioId . '/editar') . '" class="btn btn-outline-secondary btn-sm">
+                                 <i class="bi bi-pencil me-1"></i>Editar
+                               </a>',
+            'servicio'  => $servicio,
+            'resumen'   => $ventaModel->resumenServicio($servicioId),
+            'historial' => $ventaModel->historialServicio($servicioId),
+        ]);
+    }
+
     public function index(array $params): void
     {
         Auth::require();
@@ -37,16 +63,18 @@ class ServicioController extends Controller
         Csrf::verify();
 
         [$nombre, $precio, $error] = $this->validar();
+        $descripcion = trim((string) $this->input('descripcion'));
         if ($error !== null) {
-            set_old(['nombre' => $nombre, 'precio' => (string) $precio]);
+            set_old(['nombre' => $nombre, 'precio' => (string) $precio, 'descripcion' => $descripcion]);
             flash('error', $error);
             redirect('servicios/nuevo');
         }
 
         (new Servicio())->create([
-            'nombre' => $nombre,
-            'precio' => $precio,
-            'activo' => 1,
+            'nombre'      => $nombre,
+            'descripcion' => $descripcion !== '' ? $descripcion : null,
+            'precio'      => $precio,
+            'activo'      => 1,
         ]);
 
         flash('success', 'Servicio agregado correctamente.');
@@ -70,15 +98,17 @@ class ServicioController extends Controller
         Csrf::verify();
 
         [$nombre, $precio, $error] = $this->validar();
+        $descripcion = trim((string) $this->input('descripcion'));
         if ($error !== null) {
             flash('error', $error);
             redirect('servicios/' . $params['id'] . '/editar');
         }
 
         (new Servicio())->update((int) $params['id'], [
-            'nombre' => $nombre,
-            'precio' => $precio,
-            'activo' => (int) $this->input('activo', 0),
+            'nombre'      => $nombre,
+            'descripcion' => $descripcion !== '' ? $descripcion : null,
+            'precio'      => $precio,
+            'activo'      => (int) $this->input('activo', 0),
         ]);
 
         flash('success', 'Servicio actualizado.');

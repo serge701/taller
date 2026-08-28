@@ -35,13 +35,15 @@
                            value="<?= e($negocio['rfc'] ?? '') ?>">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-medium">Teléfono <span class="text-muted small">(opcional)</span></label>
-                    <div class="input-group">
-                        <span class="input-group-text text-muted"><i class="bi bi-telephone"></i></span>
-                        <input type="tel" name="telefono" class="form-control"
-                               placeholder="(999) 123-4567"
-                               value="<?= e($negocio['telefono'] ?? '') ?>">
-                    </div>
+                    <label class="form-label fw-medium">Régimen fiscal <span class="text-muted small">(opcional)</span></label>
+                    <select name="regimen_fiscal" class="form-select">
+                        <option value="">Selecciona un régimen...</option>
+                        <?php foreach (catalogo_regimenes_fiscales() as $regimen): ?>
+                        <option value="<?= e($regimen) ?>" <?= ($negocio['regimen_fiscal'] ?? '') === $regimen ? 'selected' : '' ?>>
+                            <?= e($regimen) ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
             </div>
 
@@ -55,13 +57,24 @@
                 </div>
             </div>
 
-            <div class="mb-4">
-                <label class="form-label fw-medium">Email <span class="text-muted small">(opcional)</span></label>
-                <div class="input-group">
-                    <span class="input-group-text text-muted"><i class="bi bi-envelope"></i></span>
-                    <input type="email" name="email" class="form-control"
-                           placeholder="contacto@ejemplo.com"
-                           value="<?= e($negocio['email'] ?? '') ?>">
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Teléfono <span class="text-muted small">(opcional)</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text text-muted"><i class="bi bi-telephone"></i></span>
+                        <input type="tel" name="telefono" class="form-control"
+                               placeholder="(999) 123-4567"
+                               value="<?= e($negocio['telefono'] ?? '') ?>">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Email <span class="text-muted small">(opcional)</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text text-muted"><i class="bi bi-envelope"></i></span>
+                        <input type="email" name="email" class="form-control"
+                               placeholder="contacto@ejemplo.com"
+                               value="<?= e($negocio['email'] ?? '') ?>">
+                    </div>
                 </div>
             </div>
 

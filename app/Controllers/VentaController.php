@@ -9,6 +9,8 @@ use App\Core\Csrf;
 use App\Models\Venta;
 use App\Models\Cliente;
 use App\Models\Servicio;
+use App\Models\VehiculoMarca;
+use App\Models\ClienteVehiculo;
 use InvalidArgumentException;
 
 class VentaController extends Controller
@@ -32,8 +34,11 @@ class VentaController extends Controller
     {
         Auth::require();
         $this->render('ventas/create', [
-            'pageTitle' => 'Nueva Venta',
-            'servicios' => (new Servicio())->activos(),
+            'pageTitle'      => 'Nueva Venta',
+            'servicios'      => (new Servicio())->activos(),
+            'vehiculoMarcas' => (new VehiculoMarca())->todasConModelos(),
+            'vehiculoColores'=> catalogo_colores_vehiculo(),
+            'vehiculoAnios'  => catalogo_anios_vehiculo(),
         ]);
     }
 
@@ -50,8 +55,9 @@ class VentaController extends Controller
 
         $vehiculo = [
             'marca'  => (string) $this->input('vehiculo_marca'),
+            'modelo' => (string) $this->input('vehiculo_modelo'),
+            'anio'   => (string) $this->input('vehiculo_anio'),
             'color'  => (string) $this->input('vehiculo_color'),
-            'placas' => (string) $this->input('vehiculo_placas'),
         ];
 
         $metodosValidos = ['Efectivo', 'Tarjeta de Débito', 'Tarjeta de Crédito', 'Transferencia'];
@@ -86,6 +92,14 @@ class VentaController extends Controller
             flash('error', $e->getMessage());
             redirect('ventas/nueva');
         }
+
+        (new ClienteVehiculo())->registrar(
+            $clienteId,
+            $vehiculo['marca'],
+            $vehiculo['modelo'] !== '' ? $vehiculo['modelo'] : null,
+            $vehiculo['anio'] !== '' ? (int) $vehiculo['anio'] : null,
+            $vehiculo['color'] !== '' ? $vehiculo['color'] : null
+        );
 
         flash('success', 'Venta registrada correctamente.');
         redirect('ventas/' . $ventaId);

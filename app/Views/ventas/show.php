@@ -58,11 +58,8 @@
             <div class="col-md-6">
                 <div class="text-muted small mb-1">Vehículo</div>
                 <div class="fw-semibold">
-                    <?= e($venta['vehiculo_marca']) ?> · <?= e($venta['vehiculo_color']) ?>
+                    <?= e(vehiculo_resumen($venta)) ?>
                 </div>
-                <?php if (!empty($venta['vehiculo_placas'])): ?>
-                <div class="small text-muted"><i class="bi bi-credit-card-2-front me-1"></i>Placas: <?= e($venta['vehiculo_placas']) ?></div>
-                <?php endif; ?>
             </div>
         </div>
 
@@ -181,10 +178,7 @@
             </td>
             <td style="width:50%;vertical-align:top;">
                 <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Vehículo</div>
-                <div style="font-weight:700;"><?= e($venta['vehiculo_marca']) ?> · <?= e($venta['vehiculo_color']) ?></div>
-                <?php if (!empty($venta['vehiculo_placas'])): ?>
-                <div>Placas: <?= e($venta['vehiculo_placas']) ?></div>
-                <?php endif; ?>
+                <div style="font-weight:700;"><?= e(vehiculo_resumen($venta)) ?></div>
                 <div style="margin-top:6px;">
                     <span style="color:#555;">Método de pago:</span> <?= e($venta['metodo_pago']) ?>
                 </div>

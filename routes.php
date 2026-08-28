@@ -12,6 +12,8 @@ use App\Controllers\PerfilController;
 use App\Controllers\ReporteController;
 use App\Controllers\TrabajoController;
 use App\Controllers\ConfiguracionController;
+use App\Controllers\VehiculoController;
+use App\Controllers\VinController;
 
 return function (Router $router): void {
 
@@ -29,6 +31,8 @@ return function (Router $router): void {
     $router->get('/clientes/buscar',          [ClienteController::class, 'buscar']);
     $router->get('/clientes/nuevo',           [ClienteController::class, 'create']);
     $router->post('/clientes',                [ClienteController::class, 'store']);
+    $router->get('/clientes/{id}',            [ClienteController::class, 'show']);
+    $router->get('/clientes/{id}/vehiculos',  [ClienteController::class, 'vehiculos']);
     $router->get('/clientes/{id}/editar',     [ClienteController::class, 'edit']);
     $router->post('/clientes/{id}',           [ClienteController::class, 'update']);
     $router->post('/clientes/{id}/eliminar',  [ClienteController::class, 'destroy']);
@@ -38,6 +42,7 @@ return function (Router $router): void {
     $router->get('/servicios/buscar',         [ServicioController::class, 'buscar']);
     $router->get('/servicios/nuevo',          [ServicioController::class, 'create']);
     $router->post('/servicios',               [ServicioController::class, 'store']);
+    $router->get('/servicios/{id}',           [ServicioController::class, 'show']);
     $router->get('/servicios/{id}/editar',    [ServicioController::class, 'edit']);
     $router->post('/servicios/{id}',          [ServicioController::class, 'update']);
     $router->post('/servicios/{id}/eliminar', [ServicioController::class, 'destroy']);
@@ -65,14 +70,25 @@ return function (Router $router): void {
     $router->post('/usuarios',                [UsuarioController::class, 'store']);
     $router->get('/usuarios/{id}/editar',     [UsuarioController::class, 'edit']);
     $router->post('/usuarios/{id}',           [UsuarioController::class, 'update']);
+    $router->post('/usuarios/{id}/foto',      [UsuarioController::class, 'foto']);
     $router->post('/usuarios/{id}/eliminar',  [UsuarioController::class, 'destroy']);
 
     // --- Configuración del negocio (solo Admin) ---
     $router->get('/configuracion',  [ConfiguracionController::class, 'edit']);
     $router->post('/configuracion', [ConfiguracionController::class, 'update']);
 
-    // --- Reportes (solo Admin) ---
+    // --- Marcas y Modelos de vehículo (solo Admin) ---
+    $router->get('/vehiculos',          [VehiculoController::class, 'index']);
+    $router->post('/vehiculos/marcas',  [VehiculoController::class, 'storeMarca']);
+    $router->post('/vehiculos/modelos', [VehiculoController::class, 'storeModelo']);
+
+    // --- Reportes ---
     $router->get('/reportes', [ReporteController::class, 'index']);
+
+    // --- VIN (decodificador NHTSA vPIC, disponible para todos los roles) ---
+    $router->get('/vin',           [VinController::class, 'index']);
+    $router->get('/vin/buscar',    [VinController::class, 'buscar']);
+    $router->get('/vin/consultas', [VinController::class, 'consultas']);
 
     // --- Perfil (usuario logueado) ---
     $router->get('/perfil',            [PerfilController::class, 'show']);

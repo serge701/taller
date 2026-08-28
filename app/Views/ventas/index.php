@@ -24,7 +24,7 @@
                         <?php endif; ?>
                     </td>
                     <td class="fw-semibold"><?= e($v['cliente_nombre'] . ' ' . $v['cliente_apellido']) ?></td>
-                    <td class="text-muted small"><?= e($v['vehiculo_marca'] . ' · ' . $v['vehiculo_color']) ?></td>
+                    <td class="text-muted small"><?= e(vehiculo_resumen($v)) ?></td>
                     <td><?= metodo_pago_badge($v['metodo_pago']) ?></td>
                     <td class="text-center">
                         <?php if ((int) $v['factura'] === 1): ?>

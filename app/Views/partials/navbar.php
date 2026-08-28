@@ -20,9 +20,22 @@ $esAdmin  = \App\Core\Auth::esAdmin();
                     <i class="bi bi-cart-plus fs-5 text-success"></i>
                 </a>
             </li>
+            <li class="nav-item" data-bs-toggle="tooltip" data-bs-title="Nuevo trabajo">
+                <a class="nav-link px-2" href="<?= url('trabajos/nuevo') ?>">
+                    <i class="bi bi-tools fs-5 text-primary"></i>
+                </a>
+            </li>
+            <li class="nav-item d-none d-md-flex">
+                <div class="vr mx-2 my-2 opacity-25"></div>
+            </li>
             <li class="nav-item d-none d-md-flex" data-bs-toggle="tooltip" data-bs-title="Ventas">
                 <a class="nav-link px-2" href="<?= url('ventas') ?>">
                     <i class="bi bi-receipt fs-5"></i>
+                </a>
+            </li>
+            <li class="nav-item d-none d-md-flex" data-bs-toggle="tooltip" data-bs-title="Trabajos">
+                <a class="nav-link px-2" href="<?= url('trabajos') ?>">
+                    <i class="bi bi-hourglass-split fs-5"></i>
                 </a>
             </li>
             <li class="nav-item d-none d-md-flex" data-bs-toggle="tooltip" data-bs-title="Clientes">
@@ -33,6 +46,11 @@ $esAdmin  = \App\Core\Auth::esAdmin();
             <li class="nav-item d-none d-md-flex" data-bs-toggle="tooltip" data-bs-title="Servicios">
                 <a class="nav-link px-2" href="<?= url('servicios') ?>">
                     <i class="bi bi-wrench-adjustable fs-5"></i>
+                </a>
+            </li>
+            <li class="nav-item d-none d-lg-flex" data-bs-toggle="tooltip" data-bs-title="Reportes">
+                <a class="nav-link px-2" href="<?= url('reportes') ?>">
+                    <i class="bi bi-clipboard-data fs-5"></i>
                 </a>
             </li>
         </ul>

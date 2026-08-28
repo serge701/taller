@@ -33,7 +33,9 @@
                             </span>
                             <div>
                                 <div class="fw-semibold lh-sm">
-                                    <?= e($nombreCompleto) ?>
+                                    <a href="<?= url('clientes/' . $c['id']) ?>" class="text-decoration-none text-body">
+                                        <?= e($nombreCompleto) ?>
+                                    </a>
                                     <?php if (!empty($c['rfc'])): ?>
                                     <i class="bi bi-receipt text-muted ms-1" data-bs-toggle="tooltip" data-bs-title="Tiene datos fiscales"></i>
                                     <?php endif; ?>
@@ -66,6 +68,10 @@
                         <?php endif; ?>
                     </td>
                     <td class="text-end pe-4">
+                        <a href="<?= url('clientes/' . $c['id']) ?>"
+                           class="btn btn-sm btn-outline-secondary" title="Ver ficha">
+                            <i class="bi bi-person-vcard"></i>
+                        </a>
                         <a href="<?= url('clientes/' . $c['id'] . '/editar') ?>"
                            class="btn btn-sm btn-outline-secondary" title="Editar">
                             <i class="bi bi-pencil"></i>

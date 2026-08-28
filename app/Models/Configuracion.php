@@ -8,15 +8,16 @@ use App\Core\BaseModel;
 class Configuracion extends BaseModel
 {
     protected string $table    = 'configuracion';
-    protected array  $fillable = ['nombre_taller', 'rfc', 'direccion', 'telefono', 'email'];
+    protected array  $fillable = ['nombre_taller', 'rfc', 'regimen_fiscal', 'direccion', 'telefono', 'email'];
 
     private const DEFAULT = [
-        'id'            => 1,
-        'nombre_taller' => 'Taller Mecánico Reyes',
-        'rfc'           => null,
-        'direccion'     => null,
-        'telefono'      => null,
-        'email'         => null,
+        'id'             => 1,
+        'nombre_taller'  => 'Taller Mecánico Reyes',
+        'rfc'            => null,
+        'regimen_fiscal' => null,
+        'direccion'      => null,
+        'telefono'       => null,
+        'email'          => null,
     ];
 
     public function obtener(): array

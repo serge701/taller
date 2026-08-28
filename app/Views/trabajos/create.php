@@ -65,23 +65,7 @@
         <div class="card shadow-sm border-0 mb-3">
             <div class="card-body p-4">
                 <h6 class="fw-semibold mb-3"><i class="bi bi-car-front me-2" style="color:#2563eb"></i>2. Datos del vehículo</h6>
-                <div class="row g-3">
-                    <div class="col-md-5">
-                        <label class="form-label fw-medium">Marca <span class="text-danger">*</span></label>
-                        <input type="text" id="vehiculoMarca" class="form-control" required
-                               placeholder="Ej: Nissan, Chevrolet...">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-medium">Color <span class="text-danger">*</span></label>
-                        <input type="text" id="vehiculoColor" class="form-control" required
-                               placeholder="Ej: Blanco">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-medium">Placas <span class="text-muted small">(opcional)</span></label>
-                        <input type="text" id="vehiculoPlacas" class="form-control text-uppercase"
-                               placeholder="ABC-1234">
-                    </div>
-                </div>
+                <?php require dirname(__DIR__) . '/partials/vehiculo_form.php'; ?>
             </div>
         </div>
 
@@ -144,8 +128,9 @@
                     <input type="hidden" name="cliente_id" id="inputClienteId">
                     <input type="hidden" name="items" id="inputItems">
                     <input type="hidden" name="vehiculo_marca" id="inputVehiculoMarca">
+                    <input type="hidden" name="vehiculo_modelo" id="inputVehiculoModelo">
+                    <input type="hidden" name="vehiculo_anio" id="inputVehiculoAnio">
                     <input type="hidden" name="vehiculo_color" id="inputVehiculoColor">
-                    <input type="hidden" name="vehiculo_placas" id="inputVehiculoPlacas">
 
                     <div class="mb-3">
                         <label class="form-label fw-medium">Anticipo <span class="text-muted small">(opcional)</span></label>
@@ -165,9 +150,12 @@
 
 </div>
 
+<script src="<?= asset('js/vehiculo-form.js') ?>"></script>
 <script>
-window.URL_CLIENTES_BUSCAR  = <?= json_encode(url('clientes/buscar')) ?>;
-window.URL_SERVICIOS_BUSCAR = <?= json_encode(url('servicios/buscar')) ?>;
+window.URL_CLIENTES_BUSCAR       = <?= json_encode(url('clientes/buscar')) ?>;
+window.URL_SERVICIOS_BUSCAR      = <?= json_encode(url('servicios/buscar')) ?>;
+window.URL_CLIENTE_VEHICULOS_BASE = <?= json_encode(url('clientes')) ?>;
+window.VEHICULOS_CATALOGO        = <?= json_encode($vehiculoMarcas, JSON_UNESCAPED_UNICODE) ?>;
 </script>
 
 <?php $pageScript = <<<'HTML'
@@ -175,6 +163,8 @@ window.URL_SERVICIOS_BUSCAR = <?= json_encode(url('servicios/buscar')) ?>;
 (function () {
     let cliente = null;
     let servicios = [];
+
+    VehiculoForm.init(window.VEHICULOS_CATALOGO || []);
 
     const searchInput   = document.getElementById('clienteSearch');
     const resultsBox     = document.getElementById('clienteResultados');
@@ -225,6 +215,12 @@ window.URL_SERVICIOS_BUSCAR = <?= json_encode(url('servicios/buscar')) ?>;
         resultsBox.style.display = 'none';
         searchInput.value = '';
         actualizarBoton();
+
+        // Prellenar el vehículo con lo que este cliente ha traído antes, si algo.
+        fetch(window.URL_CLIENTE_VEHICULOS_BASE + '/' + c.id + '/vehiculos')
+            .then(r => r.json())
+            .then(lista => VehiculoForm.mostrarGuardados(lista))
+            .catch(() => {});
     }
 
     btnCambiar.addEventListener('click', function () {
@@ -232,6 +228,7 @@ window.URL_SERVICIOS_BUSCAR = <?= json_encode(url('servicios/buscar')) ?>;
         inputClienteId.value = '';
         buscadorBox.classList.remove('d-none');
         seleccionadoBox.classList.add('d-none');
+        VehiculoForm.limpiarGuardados();
         actualizarBoton();
     });
 
@@ -325,25 +322,23 @@ window.URL_SERVICIOS_BUSCAR = <?= json_encode(url('servicios/buscar')) ?>;
     }
 
     function actualizarBoton() {
-        const vehiculoOk = document.getElementById('vehiculoMarca').value.trim() !== ''
-            && document.getElementById('vehiculoColor').value.trim() !== '';
-        document.getElementById('btnCrearTrabajo').disabled = !(cliente && servicios.length > 0 && vehiculoOk);
+        document.getElementById('btnCrearTrabajo').disabled = !(cliente && servicios.length > 0 && VehiculoForm.isValid());
     }
 
-    document.getElementById('vehiculoMarca').addEventListener('input', actualizarBoton);
-    document.getElementById('vehiculoColor').addEventListener('input', actualizarBoton);
+    document.getElementById('vehiculoFormWrap').addEventListener('input', actualizarBoton);
+    document.getElementById('vehiculoFormWrap').addEventListener('change', actualizarBoton);
 
     document.getElementById('formTrabajo').addEventListener('submit', function (e) {
-        const marca = document.getElementById('vehiculoMarca').value.trim();
-        const color = document.getElementById('vehiculoColor').value.trim();
-        if (marca === '' || color === '') {
+        if (!VehiculoForm.isValid()) {
             e.preventDefault();
-            alert('Marca y color del vehículo son obligatorios.');
+            alert('Completa los datos del vehículo (marca, modelo, año y color).');
             return;
         }
-        document.getElementById('inputVehiculoMarca').value = marca;
-        document.getElementById('inputVehiculoColor').value = color;
-        document.getElementById('inputVehiculoPlacas').value = document.getElementById('vehiculoPlacas').value.trim();
+        const veh = VehiculoForm.getData();
+        document.getElementById('inputVehiculoMarca').value = veh.marca;
+        document.getElementById('inputVehiculoModelo').value = veh.modelo;
+        document.getElementById('inputVehiculoAnio').value = veh.anio;
+        document.getElementById('inputVehiculoColor').value = veh.color;
         document.getElementById('inputItems').value = JSON.stringify(
             servicios.map(s => ({ servicio_id: s.id, nombre: s.nombre }))
         );

@@ -7,9 +7,80 @@ use App\Core\Controller;
 use App\Core\Auth;
 use App\Core\Csrf;
 use App\Models\Cliente;
+use App\Models\Venta;
+use App\Models\Trabajo;
+use App\Models\ClienteVehiculo;
 
 class ClienteController extends Controller
 {
+    /**
+     * Vehículos guardados de un cliente (el más reciente primero), en JSON, para
+     * prellenar el formulario de vehículo en /ventas/nueva y /trabajos/nuevo en
+     * cuanto se selecciona ese cliente.
+     */
+    public function vehiculos(array $params): void
+    {
+        Auth::require();
+
+        $lista = (new ClienteVehiculo())->porCliente((int) $params['id']);
+        $datos = array_map(static function (array $v): array {
+            return [
+                'marca'   => $v['marca'],
+                'modelo'  => $v['modelo'],
+                'anio'    => $v['anio'],
+                'color'   => $v['color'],
+                'resumen' => vehiculo_resumen([
+                    'vehiculo_marca'  => $v['marca'],
+                    'vehiculo_modelo' => $v['modelo'],
+                    'vehiculo_anio'   => $v['anio'],
+                    'vehiculo_color'  => $v['color'],
+                ]),
+            ];
+        }, $lista);
+
+        $this->json($datos);
+    }
+
+    public function show(array $params): void
+    {
+        Auth::require();
+
+        $cliente = (new Cliente())->find((int) $params['id']);
+        if (!$cliente) {
+            flash('error', 'Cliente no encontrado.');
+            redirect('clientes');
+        }
+
+        $ventaModel = new Venta();
+        $clienteId  = (int) $cliente['id'];
+
+        // Mapeado a las mismas llaves que vehiculo_resumen() espera (vehiculo_marca, etc.)
+        // para no tener que tocar la vista que ya está funcionando.
+        $vehiculos = array_map(static function (array $v): array {
+            return [
+                'vehiculo_marca'  => $v['marca'],
+                'vehiculo_modelo' => $v['modelo'],
+                'vehiculo_anio'   => $v['anio'],
+                'vehiculo_color'  => $v['color'],
+                'ultima_vez'      => $v['updated_at'],
+            ];
+        }, (new ClienteVehiculo())->porCliente($clienteId));
+
+        $this->render('clientes/show', [
+            'pageTitle'         => trim($cliente['nombre'] . ' ' . $cliente['apellido_paterno']),
+            'pageSubtitle'      => 'Ficha del cliente',
+            'pageActions'       => '<a href="' . url('clientes/' . $clienteId . '/editar') . '" class="btn btn-outline-secondary btn-sm">
+                                       <i class="bi bi-pencil me-1"></i>Editar
+                                     </a>',
+            'cliente'           => $cliente,
+            'resumen'           => $ventaModel->resumenCliente($clienteId),
+            'historial'         => $ventaModel->historialCliente($clienteId),
+            'serviciosFrecuentes' => $ventaModel->serviciosFrecuentesCliente($clienteId),
+            'vehiculos'         => $vehiculos,
+            'trabajosAbiertos'  => (new Trabajo())->abiertosPorCliente($clienteId),
+        ]);
+    }
+
     public function index(array $params): void
     {
         Auth::require();

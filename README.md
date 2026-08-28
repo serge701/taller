@@ -22,6 +22,18 @@ MVC ligera (sin framework), MySQL, AdminLTE4 + Bootstrap 5 + DataTables (vía CD
    mysql --default-character-set=utf8mb4 -u root taller < migrations/003_metodo_pago_tarjetas.sql
    mysql --default-character-set=utf8mb4 -u root taller < migrations/004_trabajos.sql
    mysql --default-character-set=utf8mb4 -u root taller < migrations/005_configuracion.sql
+   mysql --default-character-set=utf8mb4 -u root taller < migrations/006_vehiculos_catalogo.sql
+   mysql --default-character-set=utf8mb4 -u root taller < migrations/007_vehiculo_modelo_anio.sql
+   mysql --default-character-set=utf8mb4 -u root taller < migrations/008_vehiculos_catalogo_ampliado.sql
+   mysql --default-character-set=utf8mb4 -u root taller < migrations/009_dodge_caravan.sql
+   mysql --default-character-set=utf8mb4 -u root taller < migrations/010_vehiculos_revision_final.sql
+   mysql --default-character-set=utf8mb4 -u root taller < migrations/011_quitar_placas.sql
+   mysql --default-character-set=utf8mb4 -u root taller < migrations/012_ford_fusion.sql
+   mysql --default-character-set=utf8mb4 -u root taller < migrations/013_vehiculos_ovdb_crosscheck.sql
+   mysql --default-character-set=utf8mb4 -u root taller < migrations/014_configuracion_regimen_fiscal.sql
+   mysql --default-character-set=utf8mb4 -u root taller < migrations/015_cliente_vehiculos.sql
+   mysql --default-character-set=utf8mb4 -u root taller < migrations/016_vin_consultas.sql
+   mysql --default-character-set=utf8mb4 -u root taller < migrations/017_servicios_descripcion.sql
    ```
 
 3. Apunta el document root del sitio (o un alias de Apache) a esta carpeta.

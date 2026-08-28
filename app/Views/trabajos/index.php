@@ -16,10 +16,11 @@
             </thead>
             <tbody>
                 <?php foreach ($trabajos as $t): ?>
-                <tr style="cursor:pointer" onclick="location.href='<?= url('trabajos/' . $t['id']) ?>'">
+                <tr style="cursor:pointer"
+                    onclick="if (!event.target.closest('a, button')) location.href='<?= url('trabajos/' . $t['id']) ?>'">
                     <td class="ps-4">#<?= (int) $t['id'] ?></td>
                     <td class="fw-semibold"><?= e($t['cliente_nombre'] . ' ' . $t['cliente_apellido']) ?></td>
-                    <td class="text-muted small"><?= e($t['vehiculo_marca'] . ' · ' . $t['vehiculo_color']) ?></td>
+                    <td class="text-muted small"><?= e(vehiculo_resumen($t)) ?></td>
                     <td class="text-center">
                         <span class="badge rounded-pill bg-secondary"><?= (int) $t['total_servicios'] ?></span>
                     </td>
@@ -27,7 +28,7 @@
                     <td class="text-center"><?= trabajo_estado_badge($t['estado']) ?></td>
                     <td class="text-muted small"><?= e($t['usuario_nombre']) ?></td>
                     <td class="text-muted small" style="white-space:nowrap;"><?= fecha_legible($t['created_at']) ?></td>
-                    <td class="text-end pe-4" onclick="event.stopPropagation()">
+                    <td class="text-end pe-4">
                         <a href="<?= url('trabajos/' . $t['id']) ?>" class="btn btn-sm btn-outline-secondary" title="Ver">
                             <i class="bi bi-eye"></i>
                         </a>

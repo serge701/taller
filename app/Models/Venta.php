@@ -12,7 +12,7 @@ class Venta extends BaseModel
     protected array  $fillable = [
         'cliente_id', 'usuario_id', 'metodo_pago', 'comentarios',
         'factura', 'subtotal', 'iva', 'total',
-        'vehiculo_marca', 'vehiculo_color', 'vehiculo_placas',
+        'vehiculo_marca', 'vehiculo_modelo', 'vehiculo_anio', 'vehiculo_color',
     ];
 
     public const IVA_TASA = 0.16;
@@ -72,7 +72,7 @@ class Venta extends BaseModel
      * $items = [['servicio_id' => ?int, 'nombre' => ?string, 'cantidad' => int, 'precio' => ?float], ...]
      * 'servicio_id' es opcional (p. ej. al cerrar un Trabajo cuyo servicio planeado ya no
      * existe en el catálogo); en ese caso se requiere 'nombre' y 'precio' explícitos.
-     * $vehiculo = ['marca' => string, 'color' => string, 'placas' => ?string]
+     * $vehiculo = ['marca' => string, 'modelo' => string, 'anio' => int|string, 'color' => string]
      */
     public function crearConDetalle(
         int $clienteId,
@@ -86,8 +86,15 @@ class Venta extends BaseModel
         if ($items === []) {
             throw new InvalidArgumentException('La venta debe tener al menos un servicio.');
         }
-        if (trim((string) ($vehiculo['marca'] ?? '')) === '' || trim((string) ($vehiculo['color'] ?? '')) === '') {
-            throw new InvalidArgumentException('Marca y color del vehículo son obligatorios.');
+
+        $anio = (int) ($vehiculo['anio'] ?? 0);
+        if (
+            trim((string) ($vehiculo['marca'] ?? '')) === ''
+            || trim((string) ($vehiculo['modelo'] ?? '')) === ''
+            || $anio <= 0
+            || trim((string) ($vehiculo['color'] ?? '')) === ''
+        ) {
+            throw new InvalidArgumentException('Marca, modelo, año y color del vehículo son obligatorios.');
         }
 
         $servicioModel = new Servicio();
@@ -147,8 +154,9 @@ class Venta extends BaseModel
                 'iva'             => $iva,
                 'total'           => $total,
                 'vehiculo_marca'  => trim((string) $vehiculo['marca']),
+                'vehiculo_modelo' => trim((string) $vehiculo['modelo']),
+                'vehiculo_anio'   => $anio,
                 'vehiculo_color'  => trim((string) $vehiculo['color']),
-                'vehiculo_placas' => trim((string) ($vehiculo['placas'] ?? '')) !== '' ? trim((string) $vehiculo['placas']) : null,
             ]);
 
             $stmt = $this->db->prepare(
@@ -301,8 +309,113 @@ class Venta extends BaseModel
     public const REPORTE_LIMITE = 200;
 
     /**
+     * KPIs de un cliente para su ficha 360° en /clientes/{id}.
+     */
+    public function resumenCliente(int $clienteId): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) AS total_ventas,
+                    COALESCE(SUM(total), 0) AS total_gastado,
+                    MAX(created_at) AS ultima_visita
+             FROM ventas WHERE cliente_id = :id"
+        );
+        $stmt->execute(['id' => $clienteId]);
+        return $stmt->fetch() ?: ['total_ventas' => 0, 'total_gastado' => 0, 'ultima_visita' => null];
+    }
+
+    /**
+     * Historial completo de ventas de un cliente (más recientes primero), para su ficha 360°.
+     */
+    public function historialCliente(int $clienteId): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT v.*,
+                    (SELECT GROUP_CONCAT(nombre_servicio SEPARATOR ', ') FROM venta_detalle vd WHERE vd.venta_id = v.id) AS servicios
+             FROM ventas v
+             WHERE v.cliente_id = :id
+             ORDER BY v.created_at DESC"
+        );
+        $stmt->execute(['id' => $clienteId]);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Servicios que más ha pedido un cliente, para su ficha 360°.
+     */
+    public function serviciosFrecuentesCliente(int $clienteId, int $limite = 5): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT vd.nombre_servicio, SUM(vd.cantidad) AS veces, SUM(vd.subtotal) AS total
+             FROM venta_detalle vd
+             INNER JOIN ventas v ON v.id = vd.venta_id
+             WHERE v.cliente_id = :id
+             GROUP BY vd.nombre_servicio
+             ORDER BY veces DESC, total DESC
+             LIMIT :limite"
+        );
+        $stmt->bindValue('id', $clienteId, \PDO::PARAM_INT);
+        $stmt->bindValue('limite', $limite, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * KPIs de un servicio para su página de historial en /servicios/{id}.
+     */
+    public function resumenServicio(int $servicioId): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) AS veces_vendido,
+                    COALESCE(SUM(vd.cantidad), 0) AS unidades,
+                    COALESCE(SUM(vd.subtotal), 0) AS total_generado,
+                    MAX(v.created_at) AS ultima_venta
+             FROM venta_detalle vd
+             INNER JOIN ventas v ON v.id = vd.venta_id
+             WHERE vd.servicio_id = :id"
+        );
+        $stmt->execute(['id' => $servicioId]);
+        return $stmt->fetch() ?: ['veces_vendido' => 0, 'unidades' => 0, 'total_generado' => 0, 'ultima_venta' => null];
+    }
+
+    /**
+     * Historial de ventas donde se usó un servicio (más recientes primero), para
+     * su página de historial en /servicios/{id}.
+     */
+    public function historialServicio(int $servicioId): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT v.id, v.created_at, v.metodo_pago, v.total AS total_venta,
+                    vd.cantidad, vd.precio, vd.subtotal,
+                    c.nombre AS cliente_nombre, c.apellido_paterno AS cliente_apellido,
+                    v.vehiculo_marca, v.vehiculo_modelo, v.vehiculo_anio, v.vehiculo_color
+             FROM venta_detalle vd
+             INNER JOIN ventas v ON v.id = vd.venta_id
+             INNER JOIN clientes c ON c.id = v.cliente_id
+             WHERE vd.servicio_id = :id
+             ORDER BY v.created_at DESC"
+        );
+        $stmt->execute(['id' => $servicioId]);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Clientes distintos que tienen al menos una venta registrada, para el selector
+     * de la página de Reportes (evita listar clientes que nunca han comprado nada).
+     */
+    public function clientesConVenta(): array
+    {
+        $stmt = $this->db->query(
+            "SELECT DISTINCT c.id, c.nombre, c.apellido_paterno
+             FROM clientes c
+             INNER JOIN ventas v ON v.cliente_id = c.id
+             ORDER BY c.nombre ASC, c.apellido_paterno ASC"
+        );
+        return $stmt->fetchAll();
+    }
+
+    /**
      * Búsqueda de ventas para la página de Reportes.
-     * $filtros acepta: fecha_inicio, fecha_fin, cliente, servicio, factura ('0'|'1'|''), metodo_pago.
+     * $filtros acepta: fecha_inicio, fecha_fin, cliente (id del cliente), servicio, factura ('0'|'1'|''), metodo_pago.
      * Devuelve como máximo self::REPORTE_LIMITE resultados, los más recientes primero.
      */
     public function buscarReportes(array $filtros): array
@@ -319,8 +432,8 @@ class Venta extends BaseModel
             $params['fecha_fin'] = $filtros['fecha_fin'];
         }
         if (!empty($filtros['cliente'])) {
-            $where[] = "CONCAT(c.nombre, ' ', c.apellido_paterno) LIKE :cliente";
-            $params['cliente'] = '%' . $filtros['cliente'] . '%';
+            $where[] = 'v.cliente_id = :cliente';
+            $params['cliente'] = (int) $filtros['cliente'];
         }
         if (!empty($filtros['servicio'])) {
             $where[] = 'EXISTS (SELECT 1 FROM venta_detalle vd WHERE vd.venta_id = v.id AND vd.nombre_servicio LIKE :servicio)';

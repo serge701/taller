@@ -9,7 +9,7 @@ class Servicio extends BaseModel
 {
     protected string $table    = 'servicios';
     protected array  $fillable = [
-        'nombre', 'precio', 'activo',
+        'nombre', 'descripcion', 'precio', 'activo',
     ];
 
     public function activos(): array

@@ -22,7 +22,8 @@ class ReporteController extends Controller
             'metodo_pago'  => (string) $this->input('metodo_pago'),
         ];
 
-        $ventas = (new Venta())->buscarReportes($filtros);
+        $ventaModel = new Venta();
+        $ventas     = $ventaModel->buscarReportes($filtros);
 
         $total    = count($ventas);
         $subtitulo = $total . ' ' . ($total === 1 ? 'venta encontrada' : 'ventas encontradas');
@@ -35,6 +36,7 @@ class ReporteController extends Controller
             'pageSubtitle' => $subtitulo,
             'ventas'       => $ventas,
             'filtros'      => $filtros,
+            'clientes'     => $ventaModel->clientesConVenta(),
             'metodosPago'  => ['Efectivo', 'Tarjeta de Débito', 'Tarjeta de Crédito', 'Transferencia'],
         ]);
     }

@@ -3,7 +3,8 @@
         <table class="table table-hover align-middle mb-0 datatable">
             <thead>
                 <tr class="table-light">
-                    <th class="ps-4">Usuario</th>
+                    <th class="ps-4" style="width:56px;"></th>
+                    <th>Usuario</th>
                     <th>Nivel</th>
                     <th class="text-center">Estado</th>
                     <th>Último acceso</th>
@@ -14,6 +15,21 @@
                 <?php foreach ($usuarios as $u): ?>
                 <tr>
                     <td class="ps-4">
+                        <?php if (!empty($u['foto'])): ?>
+                        <img src="<?= url('assets/img/avatars/' . e($u['foto'])) ?>" alt="<?= e($u['nombre']) ?>"
+                             style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
+                        <?php else: ?>
+                        <?php
+                            $partesU   = explode(' ', trim($u['nombre'] ?? ''));
+                            $inicialesU = strtoupper(substr($partesU[0] ?? '', 0, 1) . substr($partesU[1] ?? '', 0, 1)) ?: '?';
+                        ?>
+                        <div style="width:40px;height:40px;border-radius:50%;background:#2563eb;color:#fff;
+                                    font-size:.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;">
+                            <?= e($inicialesU) ?>
+                        </div>
+                        <?php endif; ?>
+                    </td>
+                    <td>
                         <div class="fw-semibold"><?= e($u['nombre']) ?></div>
                         <div class="small text-muted">@<?= e($u['usuario']) ?></div>
                     </td>

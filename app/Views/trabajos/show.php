@@ -21,10 +21,7 @@
                     </div>
                     <div class="col-md-6">
                         <div class="text-muted small mb-1">Vehículo</div>
-                        <div class="fw-semibold"><?= e($trabajo['vehiculo_marca']) ?> · <?= e($trabajo['vehiculo_color']) ?></div>
-                        <?php if (!empty($trabajo['vehiculo_placas'])): ?>
-                        <div class="small text-muted"><i class="bi bi-credit-card-2-front me-1"></i>Placas: <?= e($trabajo['vehiculo_placas']) ?></div>
-                        <?php endif; ?>
+                        <div class="fw-semibold"><?= e(vehiculo_resumen($trabajo)) ?></div>
                     </div>
                 </div>
 

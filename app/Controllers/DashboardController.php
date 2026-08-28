@@ -44,7 +44,7 @@ class DashboardController extends Controller
             'ventasPorMes'    => $ventaModel->ventasPorMes($anioActual),
             'distribucionPago'=> $ventaModel->distribucionMetodoPago(),
             'topServicios'    => $ventaModel->topServicios(5),
-            'ultimasVentas'   => array_slice($ventaModel->todasConDetalle(), 0, 8),
+            'ultimasVentas'   => array_slice($ventaModel->todasConDetalle(), 0, 10),
             'trabajosAbiertos'=> (new Trabajo())->estadisticasAbiertos(),
             'trabajosEnCurso' => (new Trabajo())->abiertosOrdenados(6),
         ]);

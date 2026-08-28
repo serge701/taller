@@ -16,8 +16,14 @@
                 </div>
                 <div class="col-md-3 col-6">
                     <label class="form-label fw-medium small">Cliente</label>
-                    <input type="text" name="cliente" class="form-control" placeholder="Nombre o apellido..."
-                           value="<?= e($filtros['cliente']) ?>">
+                    <select name="cliente" class="form-select">
+                        <option value="">Todos</option>
+                        <?php foreach ($clientes as $c): ?>
+                        <option value="<?= (int) $c['id'] ?>" <?= $filtros['cliente'] === (string) $c['id'] ? 'selected' : '' ?>>
+                            <?= e($c['nombre'] . ' ' . $c['apellido_paterno']) ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <div class="col-md-3 col-6">
                     <label class="form-label fw-medium small">Servicio</label>
@@ -80,7 +86,7 @@
                     <td class="ps-4">#<?= (int) $v['id'] ?></td>
                     <td class="text-muted small" style="white-space:nowrap;"><?= fecha_legible($v['created_at']) ?></td>
                     <td class="fw-semibold"><?= e($v['cliente_nombre'] . ' ' . $v['cliente_apellido']) ?></td>
-                    <td class="text-muted small"><?= e($v['vehiculo_marca'] . ' · ' . $v['vehiculo_color']) ?></td>
+                    <td class="text-muted small"><?= e(vehiculo_resumen($v)) ?></td>
                     <td class="text-muted small" style="max-width:220px;"><?= e($v['servicios'] ?? '') ?></td>
                     <td><?= metodo_pago_badge($v['metodo_pago']) ?></td>
                     <td class="text-center">

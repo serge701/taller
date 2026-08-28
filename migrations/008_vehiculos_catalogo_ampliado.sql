@@ -1,0 +1,77 @@
+-- Ampliación del catálogo de vehículos con modelos más viejos, investigados en
+-- internet a petición del usuario ("nos faltan muchos modelos más viejos").
+-- Agrega modelos a marcas ya existentes + dos marcas históricas del mercado
+-- mexicano que faltaban: Datsun (Nissan en México hasta ~1984) y VAM
+-- (Vehículos Automotores Mexicanos, ensamblaba AMC bajo licencia, 1963-1987).
+-- Importa forzando utf8mb4: mysql --default-character-set=utf8mb4 -u root taller < 008_vehiculos_catalogo_ampliado.sql
+USE taller;
+
+INSERT INTO vehiculo_marcas (nombre) VALUES
+('Datsun'),
+('VAM');
+
+INSERT INTO vehiculo_modelos (marca_id, nombre) VALUES
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Volkswagen'), 'Combi'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Volkswagen'), 'Caribe'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Volkswagen'), 'Atlantic'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Volkswagen'), 'Derby'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Volkswagen'), 'Brasilia'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Volkswagen'), 'Safari'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Nissan'), 'Bluebird'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Nissan'), 'Stanza'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Nissan'), 'D21'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Nissan'), 'Pulsar'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Chevrolet'), 'Chevy'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Chevrolet'), 'Chevy Monza'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Chevrolet'), 'Nova'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Chevrolet'), 'Century'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Chevrolet'), 'C10'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Chevrolet'), 'Cheyenne'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Ford'), 'Falcon'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Ford'), 'Fairmont'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Ford'), 'Grand Marquis'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Ford'), 'Topaz'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Ford'), 'Galaxie'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Ford'), 'LTD'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Ford'), 'Tempo'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Ford'), 'Maverick'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Ford'), 'F-100'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Dodge'), 'Dart'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Dodge'), 'Valiant'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Dodge'), 'Volare'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Dodge'), 'Coronet'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Dodge'), 'Aspen'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Dodge'), 'D100'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Dodge'), 'Ramcharger'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Chrysler'), 'Spirit'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Chrysler'), 'Shadow'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Chrysler'), 'Dynasty'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Chrysler'), 'LeBaron'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Chrysler'), 'Diplomat'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Renault'), '5'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Renault'), '9'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Renault'), '12'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Renault'), '18'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Renault'), 'Fuego'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Toyota'), 'Tercel'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Toyota'), 'Corona'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Toyota'), 'Starlet'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Datsun'), '510'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Datsun'), '610'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Datsun'), '710'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Datsun'), '810'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Datsun'), '1200'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Datsun'), '1600'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Datsun'), 'B210'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Datsun'), '160J'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'Datsun'), '180J'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'VAM'), 'American'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'VAM'), 'Classic'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'VAM'), 'Javelin'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'VAM'), 'Gremlin'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'VAM'), 'Rally'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'VAM'), 'Pacer'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'VAM'), 'Matador'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'VAM'), 'AMX'),
+((SELECT id FROM vehiculo_marcas WHERE nombre = 'VAM'), 'Lerma');
+

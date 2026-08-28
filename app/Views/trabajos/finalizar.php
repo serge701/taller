@@ -57,10 +57,7 @@ foreach ($serviciosPlaneados as $sp) {
                     </div>
                     <div class="col-md-6">
                         <div class="text-muted small mb-1">Vehículo</div>
-                        <div class="fw-semibold"><?= e($trabajo['vehiculo_marca']) ?> · <?= e($trabajo['vehiculo_color']) ?></div>
-                        <?php if (!empty($trabajo['vehiculo_placas'])): ?>
-                        <div class="small text-muted"><i class="bi bi-credit-card-2-front me-1"></i>Placas: <?= e($trabajo['vehiculo_placas']) ?></div>
-                        <?php endif; ?>
+                        <div class="fw-semibold"><?= e(vehiculo_resumen($trabajo)) ?></div>
                     </div>
                 </div>
             </div>
@@ -167,7 +164,7 @@ foreach ($serviciosPlaneados as $sp) {
 
                     <div class="mb-3">
                         <label class="form-label fw-medium">Comentarios</label>
-                        <textarea name="comentarios" class="form-control" rows="2" placeholder="Notas sobre el trabajo entregado..."></textarea>
+                        <textarea name="comentarios" class="form-control" rows="2" placeholder="Notas, comentarios, placas, etc."></textarea>
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100 py-2" id="btnGuardarVenta" disabled>
@@ -305,7 +302,7 @@ window.ANTICIPO             = <?= json_encode((float) $trabajo['anticipo']) ?>;
                     '<div class="input-group input-group-sm" style="width:140px;">' +
                         '<span class="input-group-text px-2">$</span>' +
                         '<input type="number" class="form-control precio-input" data-uid="' + item.uid + '" ' +
-                            'value="' + item.precio.toFixed(2) + '" step="0.01" min="0">' +
+                            'value="' + Math.round(item.precio) + '" step="1" min="0">' +
                     '</div>' +
                     '<div class="input-group input-group-sm" style="width:92px;">' +
                         '<button type="button" class="btn btn-outline-secondary btn-menos" data-uid="' + item.uid + '">-</button>' +
@@ -330,7 +327,7 @@ window.ANTICIPO             = <?= json_encode((float) $trabajo['anticipo']) ?>;
         const item = cart.find(i => i.uid === uid);
         if (!item) return;
 
-        let val = parseFloat(e.target.value);
+        let val = Math.round(parseFloat(e.target.value));
         if (isNaN(val) || val < 0) val = 0;
         item.precio = val;
 

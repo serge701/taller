@@ -68,6 +68,13 @@ $__foto     = $__u['foto'] ?? null;
                     </a>
                 </li>
 
+                <li class="nav-item">
+                    <a href="<?= url('vin') ?>" class="nav-link <?= active('vin') ?>">
+                        <i class="nav-icon bi bi-upc-scan"></i>
+                        <p>VIN</p>
+                    </a>
+                </li>
+
                 <?php if ($esAdmin): ?>
                 <li class="nav-header">ADMINISTRACIÓN</li>
 
@@ -75,6 +82,13 @@ $__foto     = $__u['foto'] ?? null;
                     <a href="<?= url('usuarios') ?>" class="nav-link <?= active('usuarios') ?>">
                         <i class="nav-icon bi bi-person-gear"></i>
                         <p>Usuarios</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="<?= url('vehiculos') ?>" class="nav-link <?= active('vehiculos') ?>">
+                        <i class="nav-icon bi bi-car-front"></i>
+                        <p>Marcas y Modelos</p>
                     </a>
                 </li>
 

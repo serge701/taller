@@ -10,6 +10,8 @@ use App\Models\Trabajo;
 use App\Models\Cliente;
 use App\Models\Servicio;
 use App\Models\Venta;
+use App\Models\VehiculoMarca;
+use App\Models\ClienteVehiculo;
 use InvalidArgumentException;
 
 class TrabajoController extends Controller
@@ -33,8 +35,11 @@ class TrabajoController extends Controller
     {
         Auth::require();
         $this->render('trabajos/create', [
-            'pageTitle' => 'Nuevo Trabajo',
-            'servicios' => (new Servicio())->activos(),
+            'pageTitle'      => 'Nuevo Trabajo',
+            'servicios'      => (new Servicio())->activos(),
+            'vehiculoMarcas' => (new VehiculoMarca())->todasConModelos(),
+            'vehiculoColores'=> catalogo_colores_vehiculo(),
+            'vehiculoAnios'  => catalogo_anios_vehiculo(),
         ]);
     }
 
@@ -49,8 +54,9 @@ class TrabajoController extends Controller
 
         $vehiculo = [
             'marca'  => (string) $this->input('vehiculo_marca'),
+            'modelo' => (string) $this->input('vehiculo_modelo'),
+            'anio'   => (string) $this->input('vehiculo_anio'),
             'color'  => (string) $this->input('vehiculo_color'),
-            'placas' => (string) $this->input('vehiculo_placas'),
         ];
 
         if ($clienteId <= 0 || !(new Cliente())->find($clienteId)) {
@@ -70,6 +76,14 @@ class TrabajoController extends Controller
             flash('error', $e->getMessage());
             redirect('trabajos/nuevo');
         }
+
+        (new ClienteVehiculo())->registrar(
+            $clienteId,
+            $vehiculo['marca'],
+            $vehiculo['modelo'] !== '' ? $vehiculo['modelo'] : null,
+            $vehiculo['anio'] !== '' ? (int) $vehiculo['anio'] : null,
+            $vehiculo['color'] !== '' ? $vehiculo['color'] : null
+        );
 
         flash('success', 'Trabajo creado correctamente.');
         redirect('trabajos/' . $trabajoId);
@@ -180,8 +194,9 @@ class TrabajoController extends Controller
 
         $vehiculo = [
             'marca'  => $trabajo['vehiculo_marca'],
+            'modelo' => $trabajo['vehiculo_modelo'],
+            'anio'   => $trabajo['vehiculo_anio'],
             'color'  => $trabajo['vehiculo_color'],
-            'placas' => $trabajo['vehiculo_placas'],
         ];
 
         try {
@@ -200,6 +215,14 @@ class TrabajoController extends Controller
         }
 
         $trabajoModel->cerrar($trabajoId, $ventaId);
+
+        (new ClienteVehiculo())->registrar(
+            (int) $trabajo['cliente_id'],
+            (string) $vehiculo['marca'],
+            $vehiculo['modelo'] !== '' && $vehiculo['modelo'] !== null ? $vehiculo['modelo'] : null,
+            !empty($vehiculo['anio']) ? (int) $vehiculo['anio'] : null,
+            $vehiculo['color'] !== '' && $vehiculo['color'] !== null ? $vehiculo['color'] : null
+        );
 
         flash('success', 'Trabajo finalizado: se generó la venta #' . $ventaId . '.');
         redirect('ventas/' . $ventaId);

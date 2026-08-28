@@ -30,17 +30,19 @@ class ConfiguracionController extends Controller
             redirect('configuracion');
         }
 
-        $rfc       = strtoupper(trim((string) $this->input('rfc')));
-        $direccion = trim((string) $this->input('direccion'));
-        $telefono  = trim((string) $this->input('telefono'));
-        $email     = strtolower(trim((string) $this->input('email')));
+        $rfc           = strtoupper(trim((string) $this->input('rfc')));
+        $regimenFiscal = trim((string) $this->input('regimen_fiscal'));
+        $direccion     = trim((string) $this->input('direccion'));
+        $telefono      = trim((string) $this->input('telefono'));
+        $email         = strtolower(trim((string) $this->input('email')));
 
         (new Configuracion())->actualizar([
-            'nombre_taller' => $nombre,
-            'rfc'           => $rfc !== '' ? $rfc : null,
-            'direccion'     => $direccion !== '' ? $direccion : null,
-            'telefono'      => $telefono !== '' ? $telefono : null,
-            'email'         => $email !== '' ? $email : null,
+            'nombre_taller'  => $nombre,
+            'rfc'            => $rfc !== '' ? $rfc : null,
+            'regimen_fiscal' => $regimenFiscal !== '' ? $regimenFiscal : null,
+            'direccion'      => $direccion !== '' ? $direccion : null,
+            'telefono'       => $telefono !== '' ? $telefono : null,
+            'email'          => $email !== '' ? $email : null,
         ]);
 
         flash('success', 'Configuración actualizada.');

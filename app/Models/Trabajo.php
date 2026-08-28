@@ -10,8 +10,8 @@ class Trabajo extends BaseModel
 {
     protected string $table    = 'trabajos';
     protected array  $fillable = [
-        'cliente_id', 'usuario_id', 'vehiculo_marca', 'vehiculo_color', 'vehiculo_placas',
-        'anticipo', 'estado', 'venta_id', 'cerrado_at',
+        'cliente_id', 'usuario_id', 'vehiculo_marca', 'vehiculo_modelo', 'vehiculo_anio',
+        'vehiculo_color', 'anticipo', 'estado', 'venta_id', 'cerrado_at',
     ];
 
     public function todosConDetalle(): array
@@ -27,6 +27,22 @@ class Trabajo extends BaseModel
              INNER JOIN users u ON u.id = t.usuario_id
              ORDER BY (t.estado = 'Abierto') DESC, t.created_at DESC"
         );
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Trabajos abiertos de un cliente (los cerrados ya se ven como Venta en su
+     * historial), para la sección "En curso" de la ficha 360° en /clientes/{id}.
+     */
+    public function abiertosPorCliente(int $clienteId): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT t.*, (SELECT COUNT(*) FROM trabajo_servicios ts WHERE ts.trabajo_id = t.id) AS total_servicios
+             FROM trabajos t
+             WHERE t.cliente_id = :id AND t.estado = 'Abierto'
+             ORDER BY t.created_at ASC"
+        );
+        $stmt->execute(['id' => $clienteId]);
         return $stmt->fetchAll();
     }
 
@@ -76,8 +92,14 @@ class Trabajo extends BaseModel
      */
     public function crearConServicios(int $clienteId, int $usuarioId, array $vehiculo, float $anticipo, array $servicios): int
     {
-        if (trim((string) ($vehiculo['marca'] ?? '')) === '' || trim((string) ($vehiculo['color'] ?? '')) === '') {
-            throw new InvalidArgumentException('Marca y color del vehículo son obligatorios.');
+        $anio = (int) ($vehiculo['anio'] ?? 0);
+        if (
+            trim((string) ($vehiculo['marca'] ?? '')) === ''
+            || trim((string) ($vehiculo['modelo'] ?? '')) === ''
+            || $anio <= 0
+            || trim((string) ($vehiculo['color'] ?? '')) === ''
+        ) {
+            throw new InvalidArgumentException('Marca, modelo, año y color del vehículo son obligatorios.');
         }
         if ($servicios === []) {
             throw new InvalidArgumentException('Agrega al menos un servicio planeado.');
@@ -89,8 +111,9 @@ class Trabajo extends BaseModel
                 'cliente_id'      => $clienteId,
                 'usuario_id'      => $usuarioId,
                 'vehiculo_marca'  => trim((string) $vehiculo['marca']),
+                'vehiculo_modelo' => trim((string) $vehiculo['modelo']),
+                'vehiculo_anio'   => $anio,
                 'vehiculo_color'  => trim((string) $vehiculo['color']),
-                'vehiculo_placas' => trim((string) ($vehiculo['placas'] ?? '')) !== '' ? trim((string) $vehiculo['placas']) : null,
                 'anticipo'        => max(0, round($anticipo, 2)),
                 'estado'          => 'Abierto',
             ]);
@@ -162,6 +185,7 @@ class Trabajo extends BaseModel
             "SELECT t.*,
                     c.nombre AS cliente_nombre, c.apellido_paterno AS cliente_apellido,
                     DATEDIFF(NOW(), t.created_at) AS dias_abierto,
+                    TIMESTAMPDIFF(HOUR, t.created_at, NOW()) AS horas_abierto,
                     (SELECT COUNT(*) FROM trabajo_servicios ts WHERE ts.trabajo_id = t.id) AS total_servicios
              FROM trabajos t
              INNER JOIN clientes c ON c.id = t.cliente_id

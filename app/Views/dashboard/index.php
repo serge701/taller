@@ -231,7 +231,7 @@ foreach ($topServicios as $s) {
                     <th>Vehículo</th>
                     <th class="text-center">Servicios</th>
                     <th class="text-end">Anticipo</th>
-                    <th class="text-end pe-4">Días abierto</th>
+                    <th class="text-end pe-4">Tiempo abierto</th>
                 </tr>
             </thead>
             <tbody>
@@ -239,15 +239,23 @@ foreach ($topServicios as $s) {
                 <tr style="cursor:pointer" onclick="location.href='<?= url('trabajos/' . $t['id']) ?>'">
                     <td class="ps-4">#<?= (int) $t['id'] ?></td>
                     <td class="fw-semibold"><?= e($t['cliente_nombre'] . ' ' . $t['cliente_apellido']) ?></td>
-                    <td class="text-muted small"><?= e($t['vehiculo_marca'] . ' · ' . $t['vehiculo_color']) ?></td>
+                    <td class="text-muted small"><?= e(vehiculo_resumen($t)) ?></td>
                     <td class="text-center">
                         <span class="badge rounded-pill bg-secondary"><?= (int) $t['total_servicios'] ?></span>
                     </td>
                     <td class="text-end"><?= (float) $t['anticipo'] > 0 ? formato_moneda($t['anticipo']) : '<span class="text-muted">—</span>' ?></td>
                     <td class="text-end pe-4">
-                        <?php $dias = (int) $t['dias_abierto']; ?>
+                        <?php
+                            $dias       = (int) $t['dias_abierto'];
+                            $horasTotal = (int) $t['horas_abierto'];
+                            $horasResto = $horasTotal % 24;
+                        ?>
                         <span class="<?= $dias >= 7 ? 'text-danger fw-semibold' : 'text-muted' ?>">
-                            <?= $dias ?> día<?= $dias === 1 ? '' : 's' ?>
+                            <?php if ($dias > 0): ?>
+                                <?= $dias ?> día<?= $dias === 1 ? '' : 's' ?><?= $horasResto > 0 ? ', ' . $horasResto . ' h' : '' ?>
+                            <?php else: ?>
+                                <?= $horasTotal ?> h
+                            <?php endif; ?>
                         </span>
                     </td>
                 </tr>

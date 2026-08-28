@@ -31,6 +31,15 @@
 
             <div class="mb-3">
                 <label class="form-label fw-medium">
+                    Descripción <span class="text-muted small">(opcional)</span>
+                </label>
+                <textarea name="descripcion" class="form-control" rows="3"
+                          placeholder="Detalles, qué incluye, tiempo estimado, notas..."><?= $edit ? e($servicio['descripcion'] ?? '') : old('descripcion') ?></textarea>
+                <div class="form-text">Por ahora solo se muestra aquí, en el detalle del servicio.</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-medium">
                     Precio <span class="text-danger">*</span>
                 </label>
                 <div class="input-group">

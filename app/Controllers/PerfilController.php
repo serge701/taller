@@ -10,10 +10,6 @@ use App\Models\Usuario;
 
 class PerfilController extends Controller
 {
-    private const FOTO_DIR = BASE_DIR . '/assets/img/avatars';
-    private const FOTO_MAX_BYTES = 3 * 1024 * 1024; // 3MB
-    private const FOTO_TAMANO = 400; // px, imagen cuadrada final
-
     public function show(array $params): void
     {
         Auth::require();
@@ -78,80 +74,20 @@ class PerfilController extends Controller
         Auth::require();
         Csrf::verify();
 
-        $file = $_FILES['foto'] ?? null;
-        if ($file === null || ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
-            flash('error', 'Selecciona una imagen.');
+        $resultado = procesar_subida_avatar($_FILES['foto'] ?? null, 'avatar_' . Auth::id());
+        if (!$resultado['ok']) {
+            flash('error', $resultado['error']);
             redirect('perfil');
         }
-        if ($file['error'] !== UPLOAD_ERR_OK) {
-            flash('error', 'Ocurrió un error al subir la imagen.');
-            redirect('perfil');
-        }
-        if ($file['size'] > self::FOTO_MAX_BYTES) {
-            flash('error', 'La imagen no debe superar 3MB.');
-            redirect('perfil');
-        }
-
-        $info = @getimagesize($file['tmp_name']);
-        if ($info === false) {
-            flash('error', 'El archivo no es una imagen válida.');
-            redirect('perfil');
-        }
-
-        $origen = match ($info['mime']) {
-            'image/jpeg' => @imagecreatefromjpeg($file['tmp_name']),
-            'image/png'  => @imagecreatefrompng($file['tmp_name']),
-            'image/webp' => @imagecreatefromwebp($file['tmp_name']),
-            default      => null,
-        };
-
-        if ($origen === false || $origen === null) {
-            flash('error', 'Formato de imagen no soportado. Usa JPG, PNG o WEBP.');
-            redirect('perfil');
-        }
-
-        if (!is_dir(self::FOTO_DIR)) {
-            mkdir(self::FOTO_DIR, 0755, true);
-        }
-
-        $nombreArchivo = 'avatar_' . Auth::id() . '_' . time() . '.jpg';
-        $destino       = self::FOTO_DIR . '/' . $nombreArchivo;
-
-        $this->guardarComoCuadrada($origen, $destino, self::FOTO_TAMANO);
 
         $usuarioModel = new Usuario();
         $anterior     = $usuarioModel->find((int) Auth::id());
-        if (!empty($anterior['foto'])) {
-            $rutaAnterior = self::FOTO_DIR . '/' . $anterior['foto'];
-            if (is_file($rutaAnterior)) {
-                @unlink($rutaAnterior);
-            }
-        }
+        eliminar_avatar_anterior($anterior['foto'] ?? null);
 
-        $usuarioModel->update((int) Auth::id(), ['foto' => $nombreArchivo]);
-        Auth::updateSession(['foto' => $nombreArchivo]);
+        $usuarioModel->update((int) Auth::id(), ['foto' => $resultado['archivo']]);
+        Auth::updateSession(['foto' => $resultado['archivo']]);
 
         flash('success', 'Foto de perfil actualizada.');
         redirect('perfil');
-    }
-
-    /**
-     * Recorta al centro y redimensiona la imagen de origen a un cuadrado de $size px,
-     * guardándola como JPG en $destino. Libera ambos recursos GD al terminar.
-     */
-    private function guardarComoCuadrada(\GdImage $origen, string $destino, int $size): void
-    {
-        $anchoOrig = imagesx($origen);
-        $altoOrig  = imagesy($origen);
-        $lado      = min($anchoOrig, $altoOrig);
-        $srcX      = intdiv($anchoOrig - $lado, 2);
-        $srcY      = intdiv($altoOrig - $lado, 2);
-
-        $destinoImg = imagecreatetruecolor($size, $size);
-        imagecopyresampled($destinoImg, $origen, 0, 0, $srcX, $srcY, $size, $size, $lado, $lado);
-        imagejpeg($destinoImg, $destino, 85);
-
-        imagedestroy($destinoImg);
-        imagedestroy($origen);
     }
 }

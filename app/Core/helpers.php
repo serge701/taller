@@ -212,6 +212,69 @@ if (!function_exists('catalogo_regimenes_fiscales')) {
     }
 }
 
+if (!function_exists('catalogo_colores_vehiculo')) {
+    /**
+     * Colores de vehículo más comunes, con su hex, para el selector con swatch
+     * en Ventas/Trabajos. "Otro color" se maneja aparte en el formulario.
+     */
+    function catalogo_colores_vehiculo(): array
+    {
+        return [
+            ['nombre' => 'Blanco',        'hex' => '#FFFFFF'],
+            ['nombre' => 'Negro',         'hex' => '#000000'],
+            ['nombre' => 'Gris',          'hex' => '#808080'],
+            ['nombre' => 'Plata',         'hex' => '#C0C0C0'],
+            ['nombre' => 'Rojo',          'hex' => '#DC2626'],
+            ['nombre' => 'Vino',          'hex' => '#7B1E3A'],
+            ['nombre' => 'Azul',          'hex' => '#2563EB'],
+            ['nombre' => 'Azul marino',   'hex' => '#1E3A8A'],
+            ['nombre' => 'Verde',         'hex' => '#16A34A'],
+            ['nombre' => 'Amarillo',      'hex' => '#FACC15'],
+            ['nombre' => 'Naranja',       'hex' => '#F97316'],
+            ['nombre' => 'Café',          'hex' => '#7C4A26'],
+            ['nombre' => 'Beige',         'hex' => '#E8DCC5'],
+            ['nombre' => 'Dorado',        'hex' => '#D4AF37'],
+            ['nombre' => 'Morado',        'hex' => '#7C3AED'],
+            ['nombre' => 'Rosa',          'hex' => '#EC4899'],
+            ['nombre' => 'Turquesa',      'hex' => '#14B8A6'],
+            ['nombre' => 'Champagne',     'hex' => '#F0E4C8'],
+        ];
+    }
+}
+
+if (!function_exists('catalogo_anios_vehiculo')) {
+    /**
+     * Años para el selector de "Año" del vehículo: del actual hacia 50 años atrás.
+     */
+    function catalogo_anios_vehiculo(): array
+    {
+        $actual = (int) date('Y');
+        return range($actual, $actual - 50);
+    }
+}
+
+if (!function_exists('vehiculo_resumen')) {
+    /**
+     * Texto corto "Marca Modelo (Año) · Color" para listados y detalle.
+     * Tolera registros previos a la migración de modelo/año (quedan en NULL).
+     */
+    function vehiculo_resumen(array $row): string
+    {
+        $partes = [trim((string) ($row['vehiculo_marca'] ?? ''))];
+        if (!empty($row['vehiculo_modelo'])) {
+            $partes[] = $row['vehiculo_modelo'];
+        }
+        $vehiculo = trim(implode(' ', array_filter($partes)));
+
+        if (!empty($row['vehiculo_anio'])) {
+            $vehiculo .= ' (' . (int) $row['vehiculo_anio'] . ')';
+        }
+
+        $color = trim((string) ($row['vehiculo_color'] ?? ''));
+        return $color !== '' ? trim($vehiculo . ' · ' . $color, ' ·') : $vehiculo;
+    }
+}
+
 if (!function_exists('metodo_pago_badge')) {
     function metodo_pago_badge(?string $metodo): string
     {
@@ -235,5 +298,83 @@ if (!function_exists('trabajo_estado_badge')) {
             default   => ['secondary', $estado ?? '—'],
         };
         return '<span class="badge text-bg-' . $bg . '">' . e($label) . '</span>';
+    }
+}
+
+if (!function_exists('procesar_subida_avatar')) {
+    /**
+     * Valida un archivo subido por <input type="file">, lo recorta al centro a un
+     * cuadrado y lo guarda como JPG en assets/img/avatars. Compartido por Perfil
+     * (foto propia) y Usuarios (un admin sube la foto de otro usuario). No borra
+     * el archivo anterior ni toca la BD — eso lo hace el controlador que llama.
+     *
+     * @return array{ok: bool, archivo: ?string, error: ?string}
+     */
+    function procesar_subida_avatar(?array $file, string $prefijo): array
+    {
+        $dir      = BASE_DIR . '/assets/img/avatars';
+        $maxBytes = 3 * 1024 * 1024; // 3MB
+        $tamano   = 400; // px, imagen cuadrada final
+
+        if ($file === null || ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+            return ['ok' => false, 'archivo' => null, 'error' => 'Selecciona una imagen.'];
+        }
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return ['ok' => false, 'archivo' => null, 'error' => 'Ocurrió un error al subir la imagen.'];
+        }
+        if ($file['size'] > $maxBytes) {
+            return ['ok' => false, 'archivo' => null, 'error' => 'La imagen no debe superar 3MB.'];
+        }
+
+        $info = @getimagesize($file['tmp_name']);
+        if ($info === false) {
+            return ['ok' => false, 'archivo' => null, 'error' => 'El archivo no es una imagen válida.'];
+        }
+
+        $origen = match ($info['mime']) {
+            'image/jpeg' => @imagecreatefromjpeg($file['tmp_name']),
+            'image/png'  => @imagecreatefrompng($file['tmp_name']),
+            'image/webp' => @imagecreatefromwebp($file['tmp_name']),
+            default      => null,
+        };
+        if ($origen === false || $origen === null) {
+            return ['ok' => false, 'archivo' => null, 'error' => 'Formato de imagen no soportado. Usa JPG, PNG o WEBP.'];
+        }
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $nombreArchivo = $prefijo . '_' . time() . '_' . random_int(1000, 9999) . '.jpg';
+        $destino       = $dir . '/' . $nombreArchivo;
+
+        $anchoOrig = imagesx($origen);
+        $altoOrig  = imagesy($origen);
+        $lado      = min($anchoOrig, $altoOrig);
+        $srcX      = intdiv($anchoOrig - $lado, 2);
+        $srcY      = intdiv($altoOrig - $lado, 2);
+
+        $destinoImg = imagecreatetruecolor($tamano, $tamano);
+        imagecopyresampled($destinoImg, $origen, 0, 0, $srcX, $srcY, $tamano, $tamano, $lado, $lado);
+        imagejpeg($destinoImg, $destino, 85);
+
+        imagedestroy($destinoImg);
+        imagedestroy($origen);
+
+        return ['ok' => true, 'archivo' => $nombreArchivo, 'error' => null];
+    }
+}
+
+if (!function_exists('eliminar_avatar_anterior')) {
+    /** Borra del disco un archivo de avatar previo, si existe. */
+    function eliminar_avatar_anterior(?string $archivo): void
+    {
+        if (!$archivo) {
+            return;
+        }
+        $ruta = BASE_DIR . '/assets/img/avatars/' . $archivo;
+        if (is_file($ruta)) {
+            @unlink($ruta);
+        }
     }
 }

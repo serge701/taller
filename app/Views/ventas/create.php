@@ -70,23 +70,7 @@
         <div class="card shadow-sm border-0 mb-3">
             <div class="card-body p-4">
                 <h6 class="fw-semibold mb-3"><i class="bi bi-car-front me-2" style="color:#2563eb"></i>2. Datos del vehículo</h6>
-                <div class="row g-3">
-                    <div class="col-md-5">
-                        <label class="form-label fw-medium">Marca <span class="text-danger">*</span></label>
-                        <input type="text" id="vehiculoMarca" class="form-control" required
-                               placeholder="Ej: Nissan, Chevrolet...">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-medium">Color <span class="text-danger">*</span></label>
-                        <input type="text" id="vehiculoColor" class="form-control" required
-                               placeholder="Ej: Blanco">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-medium">Placas <span class="text-muted small">(opcional)</span></label>
-                        <input type="text" id="vehiculoPlacas" class="form-control text-uppercase"
-                               placeholder="ABC-1234">
-                    </div>
-                </div>
+                <?php require dirname(__DIR__) . '/partials/vehiculo_form.php'; ?>
             </div>
         </div>
 
@@ -167,8 +151,9 @@
                     <input type="hidden" name="cliente_id" id="inputClienteId">
                     <input type="hidden" name="items" id="inputItems">
                     <input type="hidden" name="vehiculo_marca" id="inputVehiculoMarca">
+                    <input type="hidden" name="vehiculo_modelo" id="inputVehiculoModelo">
+                    <input type="hidden" name="vehiculo_anio" id="inputVehiculoAnio">
                     <input type="hidden" name="vehiculo_color" id="inputVehiculoColor">
-                    <input type="hidden" name="vehiculo_placas" id="inputVehiculoPlacas">
 
                     <div class="mb-3 form-check form-switch">
                         <input type="checkbox" class="form-check-input" role="switch" id="chkFactura" name="factura" value="1">
@@ -187,7 +172,7 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-medium">Comentarios</label>
-                        <textarea name="comentarios" class="form-control" rows="2" placeholder="Notas sobre el servicio realizado..."></textarea>
+                        <textarea name="comentarios" class="form-control" rows="2" placeholder="Notas, comentarios, placas, etc."></textarea>
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100 py-2" id="btnGuardarVenta" disabled>
@@ -200,9 +185,12 @@
 
 </div>
 
+<script src="<?= asset('js/vehiculo-form.js') ?>"></script>
 <script>
-window.URL_CLIENTES_BUSCAR  = <?= json_encode(url('clientes/buscar')) ?>;
-window.URL_SERVICIOS_BUSCAR = <?= json_encode(url('servicios/buscar')) ?>;
+window.URL_CLIENTES_BUSCAR       = <?= json_encode(url('clientes/buscar')) ?>;
+window.URL_SERVICIOS_BUSCAR      = <?= json_encode(url('servicios/buscar')) ?>;
+window.URL_CLIENTE_VEHICULOS_BASE = <?= json_encode(url('clientes')) ?>;
+window.VEHICULOS_CATALOGO        = <?= json_encode($vehiculoMarcas, JSON_UNESCAPED_UNICODE) ?>;
 </script>
 
 <?php $pageScript = <<<'HTML'
@@ -210,6 +198,8 @@ window.URL_SERVICIOS_BUSCAR = <?= json_encode(url('servicios/buscar')) ?>;
 (function () {
     let cliente = null;
     let cart = [];
+
+    VehiculoForm.init(window.VEHICULOS_CATALOGO || []);
 
     const searchInput   = document.getElementById('clienteSearch');
     const resultsBox     = document.getElementById('clienteResultados');
@@ -260,6 +250,12 @@ window.URL_SERVICIOS_BUSCAR = <?= json_encode(url('servicios/buscar')) ?>;
         resultsBox.style.display = 'none';
         searchInput.value = '';
         actualizarBotonGuardar();
+
+        // Prellenar el vehículo con lo que este cliente ha traído antes, si algo.
+        fetch(window.URL_CLIENTE_VEHICULOS_BASE + '/' + c.id + '/vehiculos')
+            .then(r => r.json())
+            .then(lista => VehiculoForm.mostrarGuardados(lista))
+            .catch(() => {});
     }
 
     btnCambiar.addEventListener('click', function () {
@@ -267,6 +263,7 @@ window.URL_SERVICIOS_BUSCAR = <?= json_encode(url('servicios/buscar')) ?>;
         inputClienteId.value = '';
         buscadorBox.classList.remove('d-none');
         seleccionadoBox.classList.add('d-none');
+        VehiculoForm.limpiarGuardados();
         actualizarBotonGuardar();
     });
 
@@ -384,7 +381,7 @@ window.URL_SERVICIOS_BUSCAR = <?= json_encode(url('servicios/buscar')) ?>;
                     '<div class="input-group input-group-sm" style="width:140px;">' +
                         '<span class="input-group-text px-2">$</span>' +
                         '<input type="number" class="form-control precio-input" data-id="' + item.id + '" ' +
-                            'value="' + item.precio.toFixed(2) + '" step="0.01" min="0">' +
+                            'value="' + Math.round(item.precio) + '" step="1" min="0">' +
                     '</div>' +
                     '<div class="input-group input-group-sm" style="width:92px;">' +
                         '<button type="button" class="btn btn-outline-secondary btn-menos" data-id="' + item.id + '">-</button>' +
@@ -411,7 +408,7 @@ window.URL_SERVICIOS_BUSCAR = <?= json_encode(url('servicios/buscar')) ?>;
         const item = cart.find(i => i.id === id);
         if (!item) return;
 
-        let val = parseFloat(e.target.value);
+        let val = Math.round(parseFloat(e.target.value));
         if (isNaN(val) || val < 0) val = 0;
         item.precio = val;
 
@@ -436,21 +433,17 @@ window.URL_SERVICIOS_BUSCAR = <?= json_encode(url('servicios/buscar')) ?>;
     }
 
     function actualizarBotonGuardar() {
-        const vehiculoOk = document.getElementById('vehiculoMarca').value.trim() !== ''
-            && document.getElementById('vehiculoColor').value.trim() !== '';
         const preciosOk = cart.length > 0 && cart.every(i => i.precio > 0);
-        document.getElementById('btnGuardarVenta').disabled = !(cliente && cart.length > 0 && vehiculoOk && preciosOk);
+        document.getElementById('btnGuardarVenta').disabled = !(cliente && cart.length > 0 && VehiculoForm.isValid() && preciosOk);
     }
 
-    document.getElementById('vehiculoMarca').addEventListener('input', actualizarBotonGuardar);
-    document.getElementById('vehiculoColor').addEventListener('input', actualizarBotonGuardar);
+    document.getElementById('vehiculoFormWrap').addEventListener('input', actualizarBotonGuardar);
+    document.getElementById('vehiculoFormWrap').addEventListener('change', actualizarBotonGuardar);
 
     document.getElementById('formVenta').addEventListener('submit', function (e) {
-        const marca = document.getElementById('vehiculoMarca').value.trim();
-        const color = document.getElementById('vehiculoColor').value.trim();
-        if (marca === '' || color === '') {
+        if (!VehiculoForm.isValid()) {
             e.preventDefault();
-            alert('Marca y color del vehículo son obligatorios.');
+            alert('Completa los datos del vehículo (marca, modelo, año y color).');
             return;
         }
         if (cart.some(i => !(i.precio > 0))) {
@@ -458,9 +451,11 @@ window.URL_SERVICIOS_BUSCAR = <?= json_encode(url('servicios/buscar')) ?>;
             alert('Todos los servicios deben tener un precio mayor a $0.');
             return;
         }
-        document.getElementById('inputVehiculoMarca').value = marca;
-        document.getElementById('inputVehiculoColor').value = color;
-        document.getElementById('inputVehiculoPlacas').value = document.getElementById('vehiculoPlacas').value.trim();
+        const veh = VehiculoForm.getData();
+        document.getElementById('inputVehiculoMarca').value = veh.marca;
+        document.getElementById('inputVehiculoModelo').value = veh.modelo;
+        document.getElementById('inputVehiculoAnio').value = veh.anio;
+        document.getElementById('inputVehiculoColor').value = veh.color;
         document.getElementById('inputItems').value = JSON.stringify(
             cart.map(i => ({ servicio_id: i.id, cantidad: i.cantidad, precio: i.precio }))
         );

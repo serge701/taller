@@ -105,13 +105,13 @@
             <div class="container-fluid">
 
                 <?php if ($ok = get_flash('success')): ?>
-                    <div class="alert alert-success alert-dismissible">
+                    <div class="alert alert-success alert-dismissible d-print-none">
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         <?= e($ok) ?>
                     </div>
                 <?php endif; ?>
                 <?php if ($err = get_flash('error')): ?>
-                    <div class="alert alert-danger alert-dismissible">
+                    <div class="alert alert-danger alert-dismissible d-print-none">
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         <?= e($err) ?>
                     </div>

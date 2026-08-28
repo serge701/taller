@@ -1,6 +1,45 @@
-<?php $edit = $usuario !== null; ?>
-<div class="row justify-content-center">
-<div class="col-lg-9 col-xl-8">
+<?php
+$edit = $usuario !== null;
+
+$fotoUrl = $edit && !empty($usuario['foto']) ? url('assets/img/avatars/' . $usuario['foto']) : null;
+$partes  = explode(' ', trim($usuario['nombre'] ?? ''));
+$iniciales = strtoupper(substr($partes[0] ?? '', 0, 1) . substr($partes[1] ?? '', 0, 1)) ?: '?';
+?>
+<div class="row g-3 <?= $edit ? '' : 'justify-content-center' ?>">
+
+<?php if ($edit): ?>
+    <!-- Foto del usuario -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 text-center">
+                <h6 class="fw-semibold mb-3 text-start"><i class="bi bi-image me-2" style="color:#2563eb"></i>Foto</h6>
+
+                <img id="avatarPreview" src="<?= $fotoUrl ? e($fotoUrl) : '' ?>" alt="Foto de <?= e($usuario['nombre']) ?>"
+                     style="width:140px;height:140px;border-radius:50%;object-fit:cover;border:3px solid #e2e8f0;<?= $fotoUrl ? '' : 'display:none;' ?>">
+                <div id="avatarInicial" class="mx-auto"
+                     style="width:140px;height:140px;border-radius:50%;background:#2563eb;color:#fff;font-size:2.5rem;font-weight:700;align-items:center;justify-content:center;display:<?= $fotoUrl ? 'none' : 'flex' ?>;">
+                    <?= e($iniciales) ?>
+                </div>
+                <div id="avatarPreviewAviso" class="small text-primary mt-2 d-none">
+                    <i class="bi bi-eye me-1"></i>Vista previa — aún no se ha guardado
+                </div>
+
+                <form method="POST" action="<?= url('usuarios/' . $usuario['id'] . '/foto') ?>" enctype="multipart/form-data" class="mt-4">
+                    <?= csrf_field() ?>
+                    <input type="file" name="foto" id="inputFoto" accept="image/jpeg,image/png,image/webp" class="form-control mb-2" required>
+                    <div class="form-text mb-3">JPG, PNG o WEBP · máximo 3MB</div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-upload me-1"></i>Subir foto
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+<?php else: ?>
+    <div class="col-lg-9 col-xl-8">
+<?php endif; ?>
+
 <div class="card shadow-sm border-0">
     <div class="card-body p-4">
         <div class="mb-4">
@@ -77,5 +116,32 @@
         </form>
     </div>
 </div>
+
 </div>
 </div>
+
+<?php if ($edit): ?>
+<?php $pageScript = <<<'HTML'
+<script>
+(function () {
+    const input   = document.getElementById('inputFoto');
+    const img     = document.getElementById('avatarPreview');
+    const inicial = document.getElementById('avatarInicial');
+    const aviso   = document.getElementById('avatarPreviewAviso');
+    if (!input) return;
+
+    input.addEventListener('change', function () {
+        const file = this.files && this.files[0];
+        if (!file) return;
+
+        const url = URL.createObjectURL(file);
+        img.src = url;
+        img.style.display = '';
+        if (inicial) inicial.style.display = 'none';
+        aviso.classList.remove('d-none');
+    });
+})();
+</script>
+HTML;
+?>
+<?php endif; ?>
