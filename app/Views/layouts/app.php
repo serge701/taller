@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e(negocio()['nombre_taller']) ?></title>
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('taller_theme');
+                if (t === 'dark' || t === 'light') {
+                    document.documentElement.setAttribute('data-bs-theme', t);
+                }
+            } catch (e) {}
+        })();
+    </script>
     <link rel="icon" href="<?= asset('img/logo.png') ?>">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4/dist/css/adminlte.min.css">
@@ -72,6 +82,29 @@
         }
         .dataTables_wrapper .dataTables_filter input {
             border-radius: 6px;
+        }
+
+        /* Modo oscuro: .table-light / .bg-white / .bg-light / .text-bg-light son utilidades
+           "estáticas" de Bootstrap (no reaccionan a data-bs-theme), así que sin esto los
+           encabezados de tabla y de tarjeta se quedan blancos sobre fondo oscuro. */
+        [data-bs-theme="dark"] .table-light,
+        [data-bs-theme="dark"] .table-light > th,
+        [data-bs-theme="dark"] .table-light > td {
+            --bs-table-bg: var(--bs-tertiary-bg);
+            --bs-table-color: var(--bs-body-color);
+            --bs-table-border-color: var(--bs-border-color);
+        }
+        [data-bs-theme="dark"] .bg-white,
+        [data-bs-theme="dark"] .bg-light {
+            background-color: var(--bs-tertiary-bg) !important;
+        }
+        [data-bs-theme="dark"] .text-bg-light {
+            color: var(--bs-body-color) !important;
+            background-color: var(--bs-secondary-bg) !important;
+        }
+        [data-bs-theme="dark"] .input-group-text.bg-white,
+        [data-bs-theme="dark"] .input-group-text.bg-light {
+            color: var(--bs-body-color) !important;
         }
     </style>
 </head>
@@ -199,6 +232,29 @@
             boton.className = 'btn px-4 btn-' + (trigger.dataset.confirmVariant || 'danger');
 
             modal.show();
+        });
+    })();
+
+    // Toggle de tema claro/oscuro, persistido en localStorage.
+    (function () {
+        const KEY  = 'taller_theme';
+        const btn  = document.getElementById('themeToggle');
+        const icon = document.getElementById('themeToggleIcon');
+        if (!btn || !icon) return;
+
+        function aplicar(theme) {
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            icon.className = theme === 'dark' ? 'bi bi-sun fs-5' : 'bi bi-moon-stars fs-5';
+        }
+
+        aplicar(document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light');
+
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const actual = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light';
+            const siguiente = actual === 'dark' ? 'light' : 'dark';
+            aplicar(siguiente);
+            try { localStorage.setItem(KEY, siguiente); } catch (err) {}
         });
     })();
 

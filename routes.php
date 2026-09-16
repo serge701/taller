@@ -14,6 +14,7 @@ use App\Controllers\TrabajoController;
 use App\Controllers\ConfiguracionController;
 use App\Controllers\VehiculoController;
 use App\Controllers\VinController;
+use App\Controllers\NotaPagoController;
 
 return function (Router $router): void {
 
@@ -81,6 +82,13 @@ return function (Router $router): void {
     $router->get('/vehiculos',          [VehiculoController::class, 'index']);
     $router->post('/vehiculos/marcas',  [VehiculoController::class, 'storeMarca']);
     $router->post('/vehiculos/modelos', [VehiculoController::class, 'storeModelo']);
+
+    // --- Notas de Pago (refacciones compradas a crédito, pendientes de pago) ---
+    $router->get('/notas-pago',             [NotaPagoController::class, 'index']);
+    $router->get('/notas-pago/nueva',       [NotaPagoController::class, 'create']);
+    $router->post('/notas-pago',            [NotaPagoController::class, 'store']);
+    $router->post('/notas-pago/{id}/pagar', [NotaPagoController::class, 'pagar']);
+    $router->post('/notas-pago/{id}/eliminar', [NotaPagoController::class, 'destroy']);
 
     // --- Reportes ---
     $router->get('/reportes', [ReporteController::class, 'index']);

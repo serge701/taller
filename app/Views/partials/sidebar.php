@@ -62,6 +62,13 @@ $__foto     = $__u['foto'] ?? null;
                 </li>
 
                 <li class="nav-item">
+                    <a href="<?= url('notas-pago') ?>" class="nav-link <?= active('notas-pago') ?>">
+                        <i class="nav-icon bi bi-receipt-cutoff"></i>
+                        <p>Notas de Pago</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
                     <a href="<?= url('reportes') ?>" class="nav-link <?= active('reportes') ?>">
                         <i class="nav-icon bi bi-clipboard-data"></i>
                         <p>Reportes</p>

@@ -9,6 +9,7 @@ use App\Models\Cliente;
 use App\Models\Servicio;
 use App\Models\Venta;
 use App\Models\Trabajo;
+use App\Models\NotaPago;
 
 class DashboardController extends Controller
 {
@@ -47,6 +48,8 @@ class DashboardController extends Controller
             'ultimasVentas'   => array_slice($ventaModel->todasConDetalle(), 0, 10),
             'trabajosAbiertos'=> (new Trabajo())->estadisticasAbiertos(),
             'trabajosEnCurso' => (new Trabajo())->abiertosOrdenados(6),
+            'notasPagoPendientes' => (new NotaPago())->estadisticasPendientes(),
+            'notasPagoLista'      => (new NotaPago())->pendientesOrdenadas(6),
         ]);
     }
 }

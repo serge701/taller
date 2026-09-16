@@ -56,6 +56,13 @@ $esAdmin  = \App\Core\Auth::esAdmin();
         </ul>
 
         <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+                <a class="nav-link px-2" href="#" role="button" id="themeToggle"
+                   data-bs-toggle="tooltip" data-bs-title="Cambiar tema">
+                    <i class="bi bi-moon-stars fs-5" id="themeToggleIcon"></i>
+                </a>
+            </li>
+
             <li class="nav-item d-none d-sm-flex align-items-center px-2">
                 <span class="text-muted small">
                     <?= date('d/M/Y') ?> &nbsp;·&nbsp;

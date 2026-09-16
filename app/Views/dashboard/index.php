@@ -98,8 +98,8 @@ foreach ($topServicios as $s) {
 </div>
 
 <!-- KPIs secundarios -->
-<div class="row g-3 mb-4">
-    <div class="col-sm-6 col-lg-3">
+<div class="row g-3 mb-4 row-cols-2 row-cols-lg-5">
+    <div class="col">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body d-flex align-items-center gap-3 py-3">
                 <i class="bi bi-hourglass-split fs-4" style="color:#ea580c"></i>
@@ -119,7 +119,7 @@ foreach ($topServicios as $s) {
             </div>
         </div>
     </div>
-    <div class="col-sm-6 col-lg-3">
+    <div class="col">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body d-flex align-items-center gap-3 py-3">
                 <i class="bi bi-people fs-4" style="color:#2563eb"></i>
@@ -130,7 +130,7 @@ foreach ($topServicios as $s) {
             </div>
         </div>
     </div>
-    <div class="col-sm-6 col-lg-3">
+    <div class="col">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body d-flex align-items-center gap-3 py-3">
                 <i class="bi bi-wrench-adjustable fs-4" style="color:#2563eb"></i>
@@ -141,13 +141,26 @@ foreach ($topServicios as $s) {
             </div>
         </div>
     </div>
-    <div class="col-sm-6 col-lg-3">
+    <div class="col">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body d-flex align-items-center gap-3 py-3">
                 <i class="bi bi-receipt-cutoff fs-4" style="color:#2563eb"></i>
                 <div>
                     <div class="fw-bold"><?= formato_moneda($ticketPromedioMes) ?></div>
                     <div class="text-muted small">Ticket promedio (mes)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center gap-3 py-3">
+                <i class="bi bi-credit-card-2-front fs-4" style="color:#dc2626"></i>
+                <div>
+                    <div class="fw-bold"><?= formato_moneda($notasPagoPendientes['monto']) ?></div>
+                    <div class="text-muted small">
+                        Notas de pago pendientes<?= (int) $notasPagoPendientes['total'] > 0 ? ' · ' . (int) $notasPagoPendientes['total'] : '' ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -258,6 +271,54 @@ foreach ($topServicios as $s) {
                             <?php endif; ?>
                         </span>
                     </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php endif; ?>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-center">
+        <h6 class="fw-semibold mb-0">Notas de Pago pendientes</h6>
+        <a href="<?= url('notas-pago') ?>" class="small text-decoration-none">Ver todas <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="card-body p-0">
+        <?php if (empty($notasPagoLista)): ?>
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-credit-card-2-front fs-1 d-block mb-2 opacity-25"></i>
+            No hay notas de pago pendientes.
+        </div>
+        <?php else: ?>
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr class="table-light">
+                    <th class="ps-4">Monto</th>
+                    <th>Descripción</th>
+                    <th>Trabajo</th>
+                    <th class="text-end pe-4">Registrada</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($notasPagoLista as $n): ?>
+                <tr>
+                    <td class="ps-4 fw-semibold"><?= formato_moneda($n['monto']) ?></td>
+                    <td class="text-muted small" style="max-width:320px;">
+                        <span class="text-truncate d-inline-block" style="max-width:320px;" data-bs-toggle="tooltip" data-bs-title="<?= e($n['descripcion']) ?>">
+                            <?= e($n['descripcion']) ?>
+                        </span>
+                    </td>
+                    <td class="text-muted small">
+                        <?php if (!empty($n['trabajo_id'])): ?>
+                        <a href="<?= url('trabajos/' . $n['trabajo_id']) ?>">
+                            #<?= (int) $n['trabajo_id'] ?> — <?= e(trim($n['trabajo_cliente_nombre'] . ' ' . $n['trabajo_cliente_apellido'])) ?>
+                        </a>
+                        <?php else: ?>
+                        <span class="text-muted">—</span>
+                        <?php endif; ?>
+                    </td>
+                    <td class="text-end pe-4 text-muted small" style="white-space:nowrap;"><?= fecha_legible($n['created_at']) ?></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
